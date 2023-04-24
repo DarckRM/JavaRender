@@ -3,12 +3,12 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
-import java.util.Arrays;
 
-public class Main extends JFrame {
+public class MainThread extends JFrame {
     // 屏幕的分辨率
-    public static int screen_w = 1024;
-    public static int screen_h = 682;
+    public static int screen_w = 720;
+    public static int screen_h = 720;
+    public static int screenSize = screen_w * screen_h;
     public static int half_screen_w = screen_w / 2;
     public static int half_screen_h = screen_h / 2;
     // 当前渲染帧序号
@@ -29,10 +29,10 @@ public class Main extends JFrame {
     // 屏幕图像缓冲区 提供了在内存中操作屏幕的方法
     public static BufferedImage screenBuffer;
     public static void main(String[] args) {
-        new Main();
+        new MainThread();
     }
 
-    public Main() {
+    public MainThread() {
         setTitle("Java 软光栅学习 Demo");
         panel = (JPanel) this.getContentPane();
         panel.setPreferredSize(new Dimension(screen_w, screen_h));
@@ -51,34 +51,29 @@ public class Main extends JFrame {
         screen = ((DataBufferInt)dest).getData();
         int r_tianyi = 0x66, g_tianyi = 0xcc, b_tianyi = 0xff;
         int r_moe = 255, g_moe = 180, b_moe = 160;
-
+        int tianyiLan = (r_tianyi << 16) | (g_tianyi << 8) | b_tianyi;
+        int moe = (r_moe << 16) | (g_moe << 8) | b_moe;
+        screen[0] = tianyiLan;
+        // 初始化光栅渲染器
+        LookupTables.init();
+        Rasterizer.init();
+        // 一个简单的三角形
+        Vector3D[] myTriangle = new Vector3D[]{
+                new Vector3D(0, 1, 2),
+                new Vector3D(1, -1, 2),
+                new Vector3D(-1, -1, 2)
+        };
         while (true) {
             // 画面渲染天依蓝
-            Arrays.fill(screen, (r_tianyi << 16) | (g_tianyi << 8) | b_tianyi);
-            // 画面渐变过渡
-//            for(int i = 0; i < screen_w; i++) {
-//                for (int j = 0; j < screen_h; j++) {
-//                    float t1 = Math.abs((float) (half_screen_w - i) / half_screen_w);
-//                    float t2 = 1f - t1;
-//                    int r = (int) (r_tianyi * t1 + r_moe * t2);
-//                    int g = (int) (g_tianyi * t1 + g_moe * t2);
-//                    int b = (int) (b_tianyi * t1 + b_moe * t2);
-//                    screen[i + j * screen_w] = (r << 16) | (g << 8) | b;
-//                }
-//            }
+            for (int i = 1; i < screenSize; i += i)
+                System.arraycopy(screen, 0, screen, i, Math.min(screenSize - i, i));
 
-            // 动态渐变效果
-            for (int i = 0; i < screen_w; i++) {
-                int p = (i + frameIndex * 8) % screen_w;
-                for (int j = 0; j < screen_h; j++) {
-                    float t1 = Math.abs((float) (half_screen_w - p) / half_screen_w);
-                    float t2 = 1f - t1;
-                    int r = (int) (r_tianyi * t1 + r_moe * t2);
-                    int g = (int) (g_tianyi * t1 + g_moe * t2);
-                    int b = (int) (b_tianyi * t1 + b_moe * t2);
-                    screen[i + j * screen_w] = (r << 16) | (g << 8) | b;
-                }
-            }
+            // 渲染三角形
+            Rasterizer.triangleVertices = myTriangle;
+            Rasterizer.color = (255 << 16) | (128 << 8);
+            Rasterizer.type = 0;
+            Rasterizer.rasterize();
+
             frameIndex++;
             // 计算当前的刷新率 并尽量保持刷新率
             if (frameIndex % 30 == 0) {
