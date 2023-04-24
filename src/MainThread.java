@@ -1,10 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 
-public class MainThread extends JFrame {
+public class MainThread extends JFrame implements KeyListener {
     // 屏幕的分辨率
     public static int screen_w = 720;
     public static int screen_h = 720;
@@ -57,21 +59,26 @@ public class MainThread extends JFrame {
         // 初始化光栅渲染器
         LookupTables.init();
         Rasterizer.init();
+        Camera.init(0, 0, 0);
+        // 添加按键监听器
+        addKeyListener(this);
         // 一个简单的三角形
         Vector3D[] myTriangle = new Vector3D[]{
                 new Vector3D(0, 1, 2),
                 new Vector3D(1, -1, 2),
                 new Vector3D(-1, -1, 2)
         };
+
         while (true) {
+            // 更新摄像机
+            Camera.update();
             // 画面渲染天依蓝
             for (int i = 1; i < screenSize; i += i)
                 System.arraycopy(screen, 0, screen, i, Math.min(screenSize - i, i));
-
             // 渲染三角形
             Rasterizer.triangleVertices = myTriangle;
-            Rasterizer.color = (255 << 16) | (128 << 8);
-            Rasterizer.type = 0;
+            Rasterizer.triangleColor = moe;
+            Rasterizer.renderType = 0;
             Rasterizer.rasterize();
 
             frameIndex++;
@@ -100,5 +107,53 @@ public class MainThread extends JFrame {
             panel.getGraphics().drawImage(screenBuffer, 0, 0, this);
         }
 
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if(e.getKeyChar() == 'w' || e.getKeyChar() == 'W')
+            Camera.MOVE_FORWARD = true;
+        else if(e.getKeyChar() == 's' || e.getKeyChar() == 'S')
+            Camera.MOVE_BACKWARD = true;
+        else if(e.getKeyChar() == 'a' || e.getKeyChar() == 'A')
+            Camera.SLIDE_LEFT = true;
+        else if(e.getKeyChar() == 'd' || e.getKeyChar() == 'D')
+            Camera.SLIDE_RIGHT = true;
+
+
+        if(e.getKeyCode() == KeyEvent.VK_UP)
+            Camera.LOOK_UP= true;
+        else if(e.getKeyCode() == KeyEvent.VK_DOWN)
+            Camera.LOOK_DOWN = true;
+        else if(e.getKeyCode() == KeyEvent.VK_LEFT)
+            Camera.LOOK_LEFT = true;
+        else if(e.getKeyCode() == KeyEvent.VK_RIGHT)
+            Camera.LOOK_RIGHT = true;
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if(e.getKeyChar() == 'w' || e.getKeyChar() == 'W')
+            Camera.MOVE_FORWARD = false;
+        else if(e.getKeyChar() == 's' || e.getKeyChar() == 'S')
+            Camera.MOVE_BACKWARD = false;
+        else if(e.getKeyChar() == 'a' || e.getKeyChar() == 'A')
+            Camera.SLIDE_LEFT = false;
+        else if(e.getKeyChar() == 'd' || e.getKeyChar() == 'D')
+            Camera.SLIDE_RIGHT = false;
+
+        if(e.getKeyCode() == KeyEvent.VK_UP)
+            Camera.LOOK_UP= false;
+        else if(e.getKeyCode() == KeyEvent.VK_DOWN)
+            Camera.LOOK_DOWN = false;
+        else if(e.getKeyCode() == KeyEvent.VK_LEFT)
+            Camera.LOOK_LEFT = false;
+        else if(e.getKeyCode() == KeyEvent.VK_RIGHT)
+            Camera.LOOK_RIGHT = false;
     }
 }

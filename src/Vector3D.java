@@ -13,17 +13,32 @@ public class Vector3D {
         this.y = v.y;
         this.z = v.z;
     }
+    public void set(float x, float y, float z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
     // 矢量的加法
     public void add(Vector3D v) {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
     }
+    public void add(Vector3D v, float scalar) {
+        this.x += v.x * scalar;
+        this.y += v.y * scalar;
+        this.z += v.z * scalar;
+    }
     // 矢量的减法
     public void sub(Vector3D v) {
         this.x -= v.x;
         this.y -= v.y;
         this.z -= v.z;
+    }
+    public void sub(Vector3D v, float scalar) {
+        this.x -= v.x * scalar;
+        this.y -= v.y * scalar;
+        this.z -= v.z * scalar;
     }
     // 矢量的点积 可看作两个向量的相似度
     public float dot(Vector3D v1, Vector3D v2) {
@@ -34,6 +49,9 @@ public class Vector3D {
         x = v1.y * v2.z - v1.z * v2.y;
         y = v1.z * v2.x - v1.x * v2.z;
         z = v1.x * v2.y - v1.y * v2.x;
+    }
+    public  Vector3D cross(Vector3D v){
+        return new Vector3D(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
     }
     // 矢量的长度
     public float length() {
